@@ -60,13 +60,13 @@ var (
 	counterFsReads                *prometheus.CounterVec
 	counterFsWriteBytes           *prometheus.CounterVec
 	counterFsWrites               *prometheus.CounterVec
-	infos                         = map[string]types.ContainerJSON{}
-	stats                         = map[string]types.StatsJSON{}
-	nodeLabelNamesM               = prometheus.Labels{NodeIdLabel: "", SwarmNodeIdLabel: "", NodeNameLabel: ""}
-	hostLabelNamesM               = prometheus.Labels{NodeIdLabel: "", HostnameLabel: "", NodeNameLabel: ""}
-	labelNamesM                   = prometheus.Labels{}
-	metrics                       = make([]interface{}, 0)
-	config c.Configurations 	  = GetConfig()
+	infos                                          = map[string]types.ContainerJSON{}
+	stats                                          = map[string]types.StatsJSON{}
+	nodeLabelNamesM                                = prometheus.Labels{NodeIdLabel: "", SwarmNodeIdLabel: "", NodeNameLabel: ""}
+	hostLabelNamesM                                = prometheus.Labels{NodeIdLabel: "", HostnameLabel: "", NodeNameLabel: ""}
+	labelNamesM                                    = prometheus.Labels{}
+	metrics                                        = make([]interface{}, 0)
+	config                        c.Configurations = GetConfig()
 )
 
 func WaitForCtrlC() {
@@ -407,17 +407,18 @@ func BuildLabels(id string, filter bool) prometheus.Labels {
 	info := infos[id]
 	var labels = prometheus.Labels{}
 	if config.Kubernetes {
-		labels = prometheus.Labels{"id": "/docker/" + id, "image": info.Config.Image, 
-		    "pod": info.Config.Labels["io.kubernetes.pod.name"], 
-		    "namespace": info.Config.Labels["io.kubernetes.pod.namespace"],
+		labels = prometheus.Labels{"id": "/docker/" + id, "image": info.Config.Image,
+			"pod":                    info.Config.Labels["io.kubernetes.pod.name"],
+			"namespace":              info.Config.Labels["io.kubernetes.pod.namespace"],
 			"kubernetes_io_hostname": os.Getenv("NODE_NAME"),
-			"beta_kubernetes_io_os": "windows",
-			"kubernetes_io_role": "node"}
+			"beta_kubernetes_io_os":  "windows",
+			"kubernetes_io_role":     "node"}
 	} else {
 		labels = prometheus.Labels{"id": "/docker/" + id, "image": info.Config.Image, "name": info.Name}
-		for labelName, labelValue := range info.Config.Labels {
-			labels[NormalizeLabel(labelName)] = labelValue
-		}
+		// No need for label names here since it will not be shown correctly in metricat
+		// for labelName, labelValue := range info.Config.Labels {
+		// 	labels[NormalizeLabel(labelName)] = labelValue
+		// }
 
 		if filter {
 			//add labels that are missing (according to labelNamesM)
